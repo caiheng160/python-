@@ -1,0 +1,45 @@
+from docx import Document
+import openpyxl
+import os
+from datetime import datetime
+
+# 打开 Word 文档
+doc_path = r"D:\OneDrive\python\黄金卷\交割通知.docx"
+doc = Document(doc_path)
+
+# 打开 Excel 文件
+excel_path = r"D:\OneDrive\python\黄金卷\黄金券管理台账-悦来项目3.8.xlsx"
+wb = openpyxl.load_workbook(excel_path)
+ws = wb.active
+
+# 遍历 Excel 表格中的数据
+for row in ws.iter_rows(min_row=2, max_row=ws.max_row, values_only=True):
+    customer_name = row[1]    # J列，客户姓名
+    id_number = row[8]       # AE列，证件号
+    weight = row[7]          # AH列，领取克重
+    value = row[3]           # AL列，黄金券票面价值
+    date = row[0]        # 第8列，日期
+
+    # 格式化日期为年/月
+    if date:
+        formatted_date = date.strftime("%Y/%m")
+    else:
+        formatted_date = ""
+
+    # 替换证件号中的分号为换行符
+    if ";" in str(id_number):
+        id_number = str(id_number).replace(";", "\n")
+
+    # 填入 Word 文档的第一行和第二行
+    doc.tables[0].rows[1].cells[0].text = "1"
+    doc.tables[0].rows[1].cells[1].text = str(customer_name)
+    doc.tables[0].rows[1].cells[2].text = str(id_number)
+    doc.tables[0].rows[1].cells[3].text = str(weight)
+    doc.tables[0].rows[1].cells[4].text = str(value)
+    doc.tables[1].rows[0].cells[0].text = str(formatted_date)
+
+    # 另存为客户姓名的 Word 文档
+    output_dir = r"D:\OneDrive\python\黄金交割通知"
+    os.makedirs(output_dir, exist_ok=True)
+    output_path = os.path.join(output_dir, f'{customer_name}.docx')
+    doc.save(output_path)
